@@ -1,0 +1,193 @@
+import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
+import { ConstructorCard, type Team } from "../components/ConstructorCard";
+
+const teamsList: Team[] = [
+  {
+    id: 1,
+    name: "McLaren",
+    fullName: "McLaren Mastercard F1 Team",
+    country: "GBR",
+    base: "Woking, United Kingdom",
+    teamPrincipal: "Andrea Stella",
+    chassis: "MCL40",
+    powerUnit: "Mercedes",
+    firstEntry: 1966,
+    worldChampionships: 10,
+    color: "#ff8000",
+    drivers: ["Lando Norris", "Oscar Piastri"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/mclaren.png.transform/2col/image.png",
+  },
+  {
+    id: 2,
+    name: "Red Bull Racing",
+    fullName: "Oracle Red Bull Racing",
+    country: "AUT",
+    base: "Milton Keynes, United Kingdom",
+    teamPrincipal: "Laurent Mekies",
+    chassis: "RB22",
+    powerUnit: "Red Bull Ford",
+    firstEntry: 2005,
+    worldChampionships: 6,
+    color: "#3b1f6e",
+    drivers: ["Max Verstappen", "Isack Hadjar"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/red-bull-racing.png.transform/2col/image.png",
+  },
+  {
+    id: 3,
+    name: "Ferrari",
+    fullName: "Scuderia Ferrari HP",
+    country: "ITA",
+    base: "Maranello, Italy",
+    teamPrincipal: "Frédéric Vasseur",
+    chassis: "SF-26",
+    powerUnit: "Ferrari",
+    firstEntry: 1950,
+    worldChampionships: 16,
+    color: "#dc0000",
+    drivers: ["Charles Leclerc", "Lewis Hamilton"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/ferrari.png.transform/2col/image.png",
+  },
+  {
+    id: 4,
+    name: "Mercedes",
+    fullName: "Mercedes-AMG PETRONAS F1 Team",
+    country: "DEU",
+    base: "Brackley, United Kingdom",
+    teamPrincipal: "Toto Wolff",
+    chassis: "W17",
+    powerUnit: "Mercedes",
+    firstEntry: 1970,
+    worldChampionships: 8,
+    color: "#00d2be",
+    drivers: ["George Russell", "Kimi Antonelli"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/mercedes.png.transform/2col/image.png",
+  },
+  {
+    id: 5,
+    name: "Aston Martin",
+    fullName: "Aston Martin Aramco F1 Team",
+    country: "GBR",
+    base: "Silverstone, United Kingdom",
+    teamPrincipal: "Adrian Newey",
+    chassis: "AMR26",
+    powerUnit: "Honda",
+    firstEntry: 2018,
+    worldChampionships: 0,
+    color: "#006f62",
+    drivers: ["Fernando Alonso", "Lance Stroll"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/aston-martin.png.transform/2col/image.png",
+  },
+  {
+    id: 6,
+    name: "Williams",
+    fullName: "Williams Atlassian Racing",
+    country: "GBR",
+    base: "Grove, United Kingdom",
+    teamPrincipal: "James Vowles",
+    chassis: "FW48",
+    powerUnit: "Mercedes",
+    firstEntry: 1978,
+    worldChampionships: 9,
+    color: "#005aff",
+    drivers: ["Alexander Albon", "Carlos Sainz"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/williams.png.transform/2col/image.png",
+  },
+  {
+    id: 7,
+    name: "Alpine",
+    fullName: "BWT Alpine F1 Team",
+    country: "FRA",
+    base: "Enstone, United Kingdom",
+    teamPrincipal: "Flavio Briatore",
+    chassis: "A526",
+    powerUnit: "Mercedes",
+    firstEntry: 1981,
+    worldChampionships: 2,
+    color: "#0090ff",
+    drivers: ["Pierre Gasly", "Franco Colapinto"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/alpine.png.transform/2col/image.png",
+  },
+  {
+    id: 8,
+    name: "Racing Bulls",
+    fullName: "Visa Cash App Racing Bulls F1 Team",
+    country: "ITA",
+    base: "Faenza, Italy",
+    teamPrincipal: "Alan Permane",
+    chassis: "VCARB 03",
+    powerUnit: "Red Bull Ford",
+    firstEntry: 2006,
+    worldChampionships: 0,
+    color: "#6692ff",
+    drivers: ["Liam Lawson", "Arvid Lindblad"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/rb.png.transform/2col/image.png",
+  },
+  {
+    id: 9,
+    name: "Haas",
+    fullName: "MoneyGram Haas TGR F1 Team",
+    country: "USA",
+    base: "Kannapolis, United States",
+    teamPrincipal: "Ayao Komatsu",
+    chassis: "VF-26",
+    powerUnit: "Ferrari",
+    firstEntry: 2016,
+    worldChampionships: 0,
+    color: "#b6babd",
+    drivers: ["Esteban Ocon", "Oliver Bearman"],
+    logo: "https://media.formula1.com/d_team_car_fallback_image.png/content/dam/fom-website/teams/2025/haas-f1-team.png.transform/2col/image.png",
+  },
+  {
+    id: 10,
+    name: "Audi",
+    fullName: "Audi Revolut F1 Team",
+    country: "DEU",
+    base: "Hinwil, Switzerland",
+    teamPrincipal: "Jonathan Wheatley",
+    chassis: "A26R",
+    powerUnit: "Audi",
+    firstEntry: 2026,
+    worldChampionships: 0,
+    color: "#bb0000",
+    drivers: ["Nico Hülkenberg", "Gabriel Bortoleto"],
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/320px-Audi-Logo_2016.svg.png",
+    isNew: true,
+  },
+  {
+    id: 11,
+    name: "Cadillac",
+    fullName: "Cadillac Formula 1 Team",
+    country: "USA",
+    base: "Fishers, Indiana, USA",
+    teamPrincipal: "Graeme Lowdon",
+    chassis: "MAC-26",
+    powerUnit: "Ferrari",
+    firstEntry: 2026,
+    worldChampionships: 0,
+    color: "#a8a9ad",
+    drivers: ["Sergio Pérez", "Valtteri Bottas"],
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Cadillac_logo.svg/320px-Cadillac_logo.svg.png",
+    isNew: true,
+  },
+];
+
+export const Constructors = () => {
+  return (
+    <div className="min-h-screen text-white flex flex-col" style={{ background: "#0a0a0a" }}>
+      <Navbar />
+      <div className="flex-1 px-6 md:px-10 py-10">
+        <div className="mb-8">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Formula 1</p>
+          <h1 className="text-3xl font-black tracking-wide">2026 Constructors</h1>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {teamsList.map(team => (
+            <ConstructorCard key={team.id} team={team} />
+          ))}
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+};
