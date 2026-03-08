@@ -50,7 +50,7 @@ export const Profile = () => {
             {/* Banner */}
             <div className="h-24 w-full" style={{ background: "linear-gradient(135deg, #7f1d1d, #dc2626)" }} />
 
-            <div className="flex flex-col items-center px-8 pb-8" style={{ marginTop: "-3rem" }}>
+            <div className="flex flex-col items-center px-8 pb-8" style={{ marginTop: "-3rem" , padding: "0 2rem 2rem" }}>
               {/* Avatar */}
               <div
                 className="w-24 h-24 rounded-full overflow-hidden border-4 border-red-600 mb-4 shrink-0"
@@ -68,12 +68,12 @@ export const Profile = () => {
                 )}
               </div>
 
-              <h2 className="text-xl font-black tracking-wide text-white mb-1">@{user?.username}</h2>
+              <h2 className="text-xl font-black tracking-wide text-white mb-1" style={{margin: "1rem 0rem"}}>@{user?.username}</h2>
 
-              <div className="w-full h-px my-5" style={{ background: "rgba(255,255,255,0.08)" }} />
+              <div className="w-full h-px my-5" style={{ background: "rgba(255,255,255,0.08)", }} />
 
               {/* Info rows */}
-              <div className="w-full flex flex-col gap-4 mb-8">
+              <div className="w-full flex flex-col gap-4 mb-8" style={{ marginTop: "1rem" }}>
                 {[
                   {
                     icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />,
@@ -91,7 +91,7 @@ export const Profile = () => {
                   <div
                     key={row.label}
                     className="flex items-center gap-3 rounded-xl px-4 py-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", padding: "0.75rem 1rem" }}
                   >
                     <svg width="16" height="16" fill="none" stroke="#9ca3af" strokeWidth="2" viewBox="0 0 24 24" className="shrink-0">
                       {row.icon}
@@ -105,11 +105,11 @@ export const Profile = () => {
               </div>
 
               {/* Buttons */}
-              <div className="w-full flex flex-col gap-3">
+              <div className="w-full flex flex-col gap-3" style={{ marginTop: "1rem" }}>
                 <button
                   onClick={() => setEditOpen(true)}
                   className="w-full py-3 rounded-xl text-sm font-bold tracking-wide transition-all hover:scale-[1.02]"
-                  style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", color: "#fca5a5" }}
+                  style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", color: "#fca5a5", padding: "0.75rem 1rem" }}
                   onMouseOver={e => { e.currentTarget.style.background = "rgba(220,38,38,0.25)"; }}
                   onMouseOut={e => { e.currentTarget.style.background = "rgba(220,38,38,0.15)"; }}
                 >
@@ -125,6 +125,7 @@ export const Profile = () => {
                     border: "1px solid rgba(255,255,255,0.1)",
                     color: loggingOut ? "#6b7280" : "#d1d5db",
                     cursor: loggingOut ? "not-allowed" : "pointer",
+                    padding: "0.75rem 1rem"
                   }}
                   onMouseOver={e => { if (!loggingOut) e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
                   onMouseOut={e => { e.currentTarget.style.background = loggingOut ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.05)"; }}

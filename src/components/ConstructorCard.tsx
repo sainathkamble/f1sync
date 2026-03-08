@@ -57,7 +57,7 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
           {team.isNew && (
             <span
               className="absolute top-2 left-2 text-xs px-2 py-0.5 rounded font-bold"
-              style={{ background: "rgba(220,38,38,0.85)", color: "white" }}
+              style={{ background: "rgba(220,38,38,0.85)", color: "white", padding: "0.25rem 0.5rem" }}
             >
               NEW
             </span>
@@ -75,19 +75,19 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
         </div>
 
         {/* Card body */}
-        <div className="px-4 pb-4 pt-3">
+        <div className="px-4 pb-4 pt-3" style={{padding: "0.75rem 1rem"}}>
           {/* Name + country */}
           <div className="flex items-start justify-between mb-1">
             <div>
-              <h3 className="text-white font-black text-sm leading-tight">{team.name}</h3>
-              <p className="text-xs uppercase tracking-widest mt-0.5" style={{ color: "#6b7280" }}>
+              <h3 className="text-white font-black text-sm leading-tight" style={{ margin: "0.25rem 0" }}>{team.name}</h3>
+              <p className="text-xs uppercase tracking-widest mt-0.5" style={{ color: "#6b7280", margin: "0.25rem 0" }}>
                 {team.country} · Since {team.firstEntry}
               </p>
             </div>
           </div>
 
           {/* TP */}
-          <p className="text-xs mb-3" style={{ color: "#9ca3af" }}>
+          <p className="text-xs mb-3" style={{ color: "#9ca3af", marginBottom: "0.25rem" }}>
             <span style={{ color: "#6b7280" }}>TP: </span>{team.teamPrincipal}
           </p>
 
@@ -95,13 +95,13 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
           <div className="flex gap-2 mb-3 flex-wrap">
             <span
               className="text-xs px-2 py-0.5 rounded font-semibold"
-              style={{ background: `${team.color}18`, color: team.color, border: `1px solid ${team.color}35` }}
+              style={{ background: `${team.color}18`, color: team.color, border: `1px solid ${team.color}35`, padding: "0.25rem 0.5rem" }}
             >
               {team.chassis}
             </span>
             <span
-              className="text-xs px-2 py-0.5 rounded font-semibold"
-              style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.08)" }}
+              className="text-xs px-2 py-0.5 rounded font-semibold flex justify-center items-center"
+              style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.08)", padding: "0.25rem 0.5rem" }}
             >
               {team.powerUnit}
             </span>
@@ -111,12 +111,12 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
           <div className="h-px mb-3" style={{ background: "rgba(255,255,255,0.05)" }} />
 
           {/* Drivers */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5" style={{ margin: "0.5rem 0" }}>
             {team.drivers.map(driver => (
               <div
                 key={driver}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
-                style={{ background: `${team.color}12`, border: `1px solid ${team.color}28` }}
+                style={{ background: `${team.color}12`, border: `1px solid ${team.color}28`, padding: "0.25rem 0.75rem" }}
               >
                 <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: team.color }} />
                 <span className="text-xs font-semibold text-white">{driver}</span>
@@ -147,7 +147,7 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
         >
           <div
             className="w-full max-w-lg rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-            style={{ background: "rgba(13,13,13,0.99)", border: `1px solid ${team.color}50` }}
+            style={{ background: "rgba(13,13,13,0.99)", border: `1px solid ${team.color}50`}}
             onClick={e => e.stopPropagation()}
           >
             {/* Modal color bar */}
@@ -190,7 +190,7 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
               </button>
             </div>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6" style={{ padding: "1.5rem" }}>
               {/* Full name + country */}
               <div className="mb-5">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -233,7 +233,7 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
                   <div
                     key={item.label}
                     className="rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.5rem 0.75rem" }}
                   >
                     <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "#6b7280" }}>{item.label}</p>
                     <p className="text-sm font-semibold text-white">{item.value}</p>
@@ -242,29 +242,29 @@ export const ConstructorCard = ({ team }: { team: Team }) => {
               </div>
 
               {/* Chassis + PU pills */}
-              <div className="flex gap-2 mb-5 flex-wrap">
+              <div className="flex gap-2 mb-5 flex-wrap" style={{ margin: "1rem 0" }}>
                 <span
                   className="text-sm px-3 py-1 rounded-lg font-bold"
-                  style={{ background: `${team.color}20`, color: team.color, border: `1px solid ${team.color}40` }}
+                  style={{ background: `${team.color}20`, color: team.color, border: `1px solid ${team.color}40`, padding: "0.25rem 0.75rem" }}
                 >
                   🏎 {team.chassis}
                 </span>
                 <span
-                  className="text-sm px-3 py-1 rounded-lg font-semibold"
-                  style={{ background: "rgba(255,255,255,0.06)", color: "#d1d5db", border: "1px solid rgba(255,255,255,0.1)" }}
+                  className="text-sm px-3 py-1 rounded-lg font-semibold flex justify-center items-center"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "#d1d5db", border: "1px solid rgba(255,255,255,0.1)", padding: "0.25rem 0.75rem" }}
                 >
                   ⚡ {team.powerUnit}
                 </span>
               </div>
 
               {/* Drivers */}
-              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280" }}>2026 Drivers</p>
+              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280", margin: "0.25rem 0" }}>2026 Drivers</p>
               <div className="flex flex-col gap-2">
                 {team.drivers.map((driver, i) => (
                   <div
                     key={driver}
                     className="flex items-center gap-3 rounded-xl px-4 py-3"
-                    style={{ background: `${team.color}10`, border: `1px solid ${team.color}25` }}
+                    style={{ background: `${team.color}10`, border: `1px solid ${team.color}25`, padding: "0.5rem 0.75rem" }}
                   >
                     <div
                       className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"

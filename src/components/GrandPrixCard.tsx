@@ -54,8 +54,20 @@ interface Props {
 
 export const GrandPrixCard = ({ meeting, index }: Props) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const past = isPast(meeting.date_end);
-  const upcoming = !past;
+
+  const getStatus = (start: string, end: string) => {
+    const now = new Date().getTime()
+    const startTime = new Date(start).getTime()
+    const endTime = new Date(end).getTime()
+    if (now > endTime) return "past"
+    if (now >= startTime && now <= endTime) return "live"
+    return "upcoming"
+  }
+
+  const status = getStatus(meeting.date_start, meeting.date_end)
+  const past = status === "past"
+  const live = status === "live"
+  const upcoming = status === "upcoming"
 
   return (
     <>
@@ -90,22 +102,28 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
           {/* Round badge */}
           <div
             className="absolute top-3 left-3 text-xs font-black px-2 py-1 rounded"
-            style={{ background: "rgba(0,0,0,0.7)", color: "#9ca3af", backdropFilter: "blur(4px)" }}
+            style={{ background: "rgba(0,0,0,0.7)", color: "#9ca3af", backdropFilter: "blur(4px)", padding: "0.25rem 0.5rem" }}
           >
-            RD {String(index + 1).padStart(2, "0")}
+            Round {String(index + 1).padStart(2, "0")}
           </div>
 
           {/* Status badge */}
           <div className="absolute top-3 right-3">
-            {past ? (
-              <span className="text-xs px-2 py-1 rounded font-semibold" style={{ background: "rgba(0,0,0,0.7)", color: "#6b7280", backdropFilter: "blur(4px)" }}>
-                Completed
+            { past && (
+              <span className="text-xs px-2 py-1 rounded font-semibold" style={{ background: "rgba(0,0,0,0.7)", color: "#6b7280", backdropFilter: "blur(4px)", padding: "0.25rem 0.5rem" }}>
+                PAST
               </span>
-            ) : (
-              <span className="text-xs px-2 py-1 rounded font-semibold" style={{ background: "rgba(220,38,38,0.8)", color: "white", backdropFilter: "blur(4px)" }}>
-                Upcoming
+           )}
+            { live && (
+              <span className="text-xs px-2 py-1 rounded font-semibold" style={{ background: "rgba(38,220,38,0.8)", color: "white", backdropFilter: "blur(4px)", padding: "0.25rem 0.5rem" }}>
+                LIVE
               </span>
-            )}
+           )}
+           { upcoming && (
+              <span className="text-xs px-2 py-1 rounded font-semibold" style={{ background: "rgba(220,38,38,0.8)", color: "white", backdropFilter: "blur(4px)", padding: "0.25rem 0.5rem" }}>
+                UPCOMING
+              </span>
+           )}
           </div>
 
           {/* Dark gradient at bottom */}
@@ -113,7 +131,7 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
         </div>
 
         {/* Card body */}
-        <div className="px-4 pb-4 pt-2">
+        <div className="px-4 pb-4 pt-2" style={{ padding: "0 1rem" }}>
           {/* Country flag + name */}
           <div className="flex items-center gap-2 mb-2">
             {meeting.country_flag && (
@@ -131,7 +149,7 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
             <p className="text-gray-400 text-xs">{formatDate(meeting.date_start)} — {formatDate(meeting.date_end)}</p>
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 group-hover:translate-x-1"
-              style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)" }}
+              style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)", marginRight: "0.25rem", marginBottom: "0.5rem" }}
             >
               <svg width="12" height="12" fill="none" stroke="#dc2626" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
@@ -150,7 +168,7 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
         >
           <div
             className="w-full max-w-lg rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-            style={{ background: "rgba(15,15,15,0.98)", border: "1px solid rgba(255,255,255,0.1)" }}
+            style={{ background: "rgba(15,15,15,0.98)", border: "1px solid rgba(255,255,255,0.1)", padding: "1rem 1rem" }}
             onClick={e => e.stopPropagation()}
           >
             {/* Modal header image */}
@@ -178,14 +196,16 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
               {/* Flag + country */}
               <div className="flex items-center gap-2 mb-2">
                 {meeting.country_flag && (
-                  <img src={meeting.country_flag} alt={meeting.country_name} className="h-4 rounded-sm object-cover" style={{ width: "26px" }} />
+                  <img src={meeting.country_flag} alt={meeting.country_name} className="h-4 rounded-sm object-cover" style={{ width: "26px", margin: "0.5rem 0" }} />
                 )}
-                <span className="text-xs text-gray-400 uppercase tracking-widest">{meeting.country_name} · {meeting.country_code}</span>
+                <span className="text-xs text-gray-400 uppercase tracking-widest">
+                  {meeting.country_name} · {meeting.country_code}
+                </span>
               </div>
 
               {/* Official name */}
               <h2 className="text-white font-black text-lg leading-tight mb-1">{meeting.meeting_official_name}</h2>
-              <p className="text-gray-500 text-sm mb-5">{meeting.location} · {meeting.circuit_short_name}</p>
+              <p className="text-gray-500 text-sm mb-5" style={{ margin: "0.5rem 0" }}>{meeting.location} · {meeting.circuit_short_name}</p>
 
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-3 mb-5">
@@ -195,12 +215,12 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
                   { label: "Date Start", value: formatDate(meeting.date_start) },
                   { label: "Date End", value: formatDate(meeting.date_end) },
                   { label: "Season", value: String(meeting.year) },
-                  { label: "Status", value: past ? "Completed" : "Upcoming" },
+                  { label: "Status", value: past ? "Past" : live ? "Live" : "Upcoming" },
                 ].map(item => (
                   <div
                     key={item.label}
                     className="rounded-xl px-4 py-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.5rem 1rem" }}
                   >
                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-0.5">{item.label}</p>
                     <p className="text-sm text-white font-semibold">{item.value}</p>
@@ -211,13 +231,13 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
               {/* Sessions */}
               {meeting.sessions && meeting.sessions.length > 0 && (
                 <>
-                  <p className="text-xs text-gray-600 uppercase tracking-widest mb-3">Sessions</p>
+                  <p className="text-xs text-gray-600 uppercase tracking-widest mb-3" style={{ margin: "0.5rem 0" }}>Sessions</p>
                   <div className="flex flex-col gap-2">
                     {meeting.sessions.map(session => (
                       <div
                         key={session.session_key}
                         className="flex items-center justify-between rounded-xl px-4 py-3"
-                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", padding: "0.5rem 1rem" }}
                       >
                         <div className="flex items-center gap-3">
                           <div
@@ -243,7 +263,7 @@ export const GrandPrixCard = ({ meeting, index }: Props) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01]"
-                  style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.25)", color: "#fca5a5" }}
+                  style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.25)", color: "#fca5a5", margin: "1.25rem 0", padding: "0.75rem 0" }}
                 >
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

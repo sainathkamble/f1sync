@@ -149,7 +149,7 @@ export const EditProfileModal = ({ onClose }: Props) => {
       >
         <div className="h-1.5 w-full" style={{ background: "#dc2626" }} />
 
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-6 flex flex-col gap-5" style={{ padding: "1.5rem" }}>
 
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export const EditProfileModal = ({ onClose }: Props) => {
           <div className="flex gap-3">
             <button onClick={onClose}
               className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af" }}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af", padding: "0.72rem 1rem" }}
             >
               Cancel
             </button>
@@ -298,6 +298,7 @@ export const EditProfileModal = ({ onClose }: Props) => {
                 border: "none", color: "white",
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.8 : 1,
+                padding: "0.72rem 1rem"
               }}
               onMouseOver={e => { if (!loading) e.currentTarget.style.background = "#ef4444"; }}
               onMouseOut={e => { e.currentTarget.style.background = loading ? "#9b1c1c" : "#dc2626"; }}

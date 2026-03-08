@@ -49,7 +49,7 @@ export const Drivers = () => {
     <div className="min-h-screen text-white flex flex-col" style={{ background: "#0a0a0a" }}>
       <Navbar />
       <div className="flex-1 px-6 md:px-10 py-10">
-        <div className="mb-8">
+        <div className="mb-8 flex flex-col items-center gap-1" style={{ padding: "2rem 0" }}>
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Season 2025</p>
           <h1 className="text-3xl font-black tracking-wide">Drivers</h1>
         </div>
@@ -63,7 +63,7 @@ export const Drivers = () => {
         {error && <p className="text-red-400 text-sm text-center py-20">{error}</p>}
 
         {!loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" style={{padding: "0 1rem"}}>
             {drivers.map(driver => (
               <DriverCard
                 key={driver.driver_number}

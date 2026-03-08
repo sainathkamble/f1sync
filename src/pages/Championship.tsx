@@ -76,7 +76,7 @@ const getAge = (dob: string) => {
 
 // ── Empty / Pre-season state ──
 const PreSeasonState = ({ season, tab }: { season: string | null; tab: Tab }) => (
-  <div className="flex flex-col items-center justify-center py-24 gap-4 max-w-md mx-auto text-center">
+  <div className="w-full flex flex-col justify-self-center place-items-center py-24 gap-4 max-w-md mx-auto text-center">
     <div
       className="w-16 h-16 rounded-2xl flex items-center justify-center mb-2"
       style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.2)" }}
@@ -94,7 +94,7 @@ const PreSeasonState = ({ season, tab }: { season: string | null; tab: Tab }) =>
     </p>
     <div
       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold mt-2"
-      style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.2)", color: "#fca5a5" }}
+      style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.2)", color: "#fca5a5", padding: "0.5rem 1rem" }}
     >
       🏁 Lights out soon
     </div>
@@ -144,7 +144,7 @@ export const Championship = () => {
       <div className="flex-1 px-6 md:px-10 py-10">
 
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col items-center gap-1" style={{ padding: "2rem 0" }}>
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Formula 1</p>
           <h1 className="text-3xl font-black tracking-wide">Championship Standings</h1>
           {hasStandings && currentData?.season && (
@@ -157,8 +157,8 @@ export const Championship = () => {
 
         {/* Tab switcher */}
         <div
-          className="inline-flex rounded-xl p-1 mb-8"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+          className="inline-flex rounded-xl p-1"
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", marginLeft: "2rem", marginBottom: "1.5rem" }}
         >
           {(["drivers", "constructors"] as Tab[]).map(t => (
             <button
@@ -166,8 +166,8 @@ export const Championship = () => {
               onClick={() => { setTab(t); setLoading(t === "drivers" ? driverData === null : constructorData === null); }}
               className="px-5 py-2 rounded-lg text-sm font-bold tracking-wide transition-all duration-200 capitalize"
               style={tab === t
-                ? { background: "#dc2626", color: "white" }
-                : { background: "transparent", color: "#6b7280" }
+                ? { background: "#dc2626", color: "white", padding: "0.5rem 1.25rem" }
+                : { background: "transparent", color: "#6b7280", padding: "0.5rem 1.25rem" }
               }
             >
               {t}

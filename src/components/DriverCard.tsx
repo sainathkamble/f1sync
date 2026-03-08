@@ -89,11 +89,12 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
     setLoadingDetails(true);
     setDetailsError("");
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/f1/driver/${ergastId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/driver/${ergastId}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed");
       setDetails(await res.json());
+      console.log("Fetched details for", res);
     } catch {
       setDetailsError("Could not load driver details");
     } finally {
@@ -133,14 +134,14 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
           {/* Driver number watermark */}
           <span
             className="absolute bottom-1 right-3 text-5xl font-black leading-none select-none pointer-events-none"
-            style={{ color: `${teamColor}25` }}
+            style={{ color: `${teamColor}50` }}
           >
             {driver.driver_number}
           </span>
         </div>
 
         {/* Info */}
-        <div className="px-4 pb-4 pt-2">
+        <div className="px-4 pb-4 pt-2" style={{ padding: "0.5rem 1rem" }}>
           <div className="flex items-center justify-between mb-1">
             <span
               className="text-xs font-bold px-2 py-0.5 rounded"
@@ -148,6 +149,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                 background: `${teamColor}22`,
                 color: teamColor,
                 border: `1px solid ${teamColor}44`,
+                padding: "0.125rem 0.5rem",
               }}
             >
               {driver.name_acronym}
@@ -157,8 +159,8 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
             </span>
           </div>
 
-          <p className="text-white font-black text-sm leading-tight mt-1">{driver.full_name}</p>
-          <p className="text-xs mt-0.5 truncate" style={{ color: "#6b7280" }}>{driver.team_name}</p>
+          <p className="text-white font-black text-sm leading-tight mt-1" style={{ marginTop: "0.25rem"}}>{driver.full_name}</p>
+          <p className="text-xs mt-0.5 truncate" style={{ color: "#6b7280", margin: "0.25rem 0" }}>{driver.team_name}</p>
 
           {/* View details hint */}
           <div className="flex items-center justify-end mt-2 gap-1">
@@ -189,7 +191,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
             {/* Modal hero */}
             <div
               className="relative flex items-end justify-between px-6 pt-4 pb-0 overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${teamColor}22, rgba(0,0,0,0))`, minHeight: "140px" }}
+              style={{ background: `linear-gradient(135deg, ${teamColor}22, rgba(0,0,0,0))`, minHeight: "140px", padding: "1rem 1.5rem 0.75rem" }}
             >
               {/* Driver info left */}
               <div className="pb-4 z-10">
@@ -230,7 +232,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
               </button>
             </div>
 
-            <div className="px-6 pb-6 pt-4">
+            <div className="px-6 pb-6 pt-4 overflow-y-scroll" style={{ padding: "1rem 1.5rem" }}>
               {/* Loading */}
               {loadingDetails && (
                 <div className="flex items-center justify-center py-12">
@@ -257,7 +259,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                       <div
                         key={item.label}
                         className="rounded-xl px-3 py-2.5"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.5rem" }}
                       >
                         <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "#6b7280" }}>{item.label}</p>
                         <p className="text-sm font-semibold text-white">{item.value}</p>
@@ -280,7 +282,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                   )}
 
                   {/* Career stats grid */}
-                  <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280" }}>Career Stats</p>
+                  <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280", margin: "0.25rem 0" }}>Career Stats</p>
                   <div className="grid grid-cols-3 gap-2.5 mb-5">
                     <StatBox label="Wins" value={details.stats.wins} color={teamColor} />
                     <StatBox label="Podiums" value={details.stats.podiums} />
@@ -300,13 +302,13 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                   {/* Teams */}
                   {details.stats.teams.length > 0 && (
                     <>
-                      <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280" }}>Teams</p>
+                      <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280", margin: "0.25rem 0" }}>Teams</p>
                       <div className="flex flex-wrap gap-2 mb-5">
                         {details.stats.teams.map(team => (
                           <span
                             key={team}
                             className="text-xs px-3 py-1 rounded-lg font-semibold"
-                            style={{ background: "rgba(255,255,255,0.05)", color: "#d1d5db", border: "1px solid rgba(255,255,255,0.08)" }}
+                            style={{ background: "rgba(255,255,255,0.05)", color: "#d1d5db", border: "1px solid rgba(255,255,255,0.08)", padding: "0.25rem 0.75rem", marginBottom: "0.5rem" }}
                           >
                             {team}
                           </span>
@@ -319,7 +321,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                   {details.stats.currentStanding && (
                     <div
                       className="flex items-center justify-between rounded-xl px-4 py-3 mb-5"
-                      style={{ background: `${teamColor}10`, border: `1px solid ${teamColor}25` }}
+                      style={{ background: `${teamColor}10`, border: `1px solid ${teamColor}25`, padding: "0.75rem" }}
                     >
                       <p className="text-sm font-semibold text-white">Latest Championship Standing</p>
                       <div className="flex items-center gap-3">
@@ -342,7 +344,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-[1.01]"
-                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#d1d5db" }}
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#d1d5db", padding: "0.75rem" }}
                     >
                       <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
