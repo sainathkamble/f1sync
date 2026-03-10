@@ -19,7 +19,6 @@ export const EditProfileModal = ({ onClose }: Props) => {
 
   const [preview, setPreview] = useState<string | null>(user?.avatar ?? null);
   const [avatarChanged, setAvatarChanged] = useState(false);
-  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -174,10 +173,8 @@ export const EditProfileModal = ({ onClose }: Props) => {
               className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
               style={{ border: "3px solid #dc2626" }}
               onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setDragging(true); }}
-              onDragLeave={() => setDragging(false)}
               onDrop={e => {
-                e.preventDefault(); setDragging(false);
+                e.preventDefault();
                 const f = e.dataTransfer.files[0];
                 if (f) handleFile(f);
               }}

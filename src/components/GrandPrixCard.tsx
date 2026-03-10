@@ -45,8 +45,6 @@ const formatDate = (d: string) =>
 const formatTime = (d: string) =>
   new Date(d).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-const isPast = (d: string) => new Date(d) < new Date();
-
 interface Props {
   meeting: Meeting;
   index: number;
