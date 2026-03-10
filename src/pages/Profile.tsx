@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { EditProfileModal } from "../components/EditProfileModal";
 import { useUser } from "../context/UserContext";
+import { Footer } from "../components/Footer";
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export const Profile = () => {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center px-4 py-16">
+        <div className="flex flex-col items-center" style={{ margin: "3rem 0" }}>
           <div
             className="w-full max-w-sm rounded-2xl overflow-hidden"
             style={{ background: "rgba(18,18,18,0.95)", border: "1px solid rgba(255,255,255,0.08)" }}
@@ -140,6 +141,8 @@ export const Profile = () => {
 
       {/* Edit modal */}
       {editOpen && <EditProfileModal onClose={() => setEditOpen(false)} />}
+
+      <Footer />  
     </div>
   );
 };

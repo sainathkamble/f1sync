@@ -67,7 +67,7 @@ export const LandingPage = () => {
   return (
     <div style={{ position: "relative", width: "100vw", height: "100dvh", overflow: "hidden", color: "white" }}>
       <video autoPlay muted loop playsInline style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(90%)", zIndex: 0 }}>
-        <source src="/f1.mp4" type="video/mp4" />
+        <source src="https://res.cloudinary.com/dwrydexn6/video/upload/v1773134562/f1-compressed_b3synn.mp4" type="video/mp4" />
       </video>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.70)", zIndex: 1 }} />
       <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 1.5rem" }}>

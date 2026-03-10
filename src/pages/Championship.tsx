@@ -141,7 +141,7 @@ export const Championship = () => {
     <div className="min-h-screen text-white flex flex-col" style={{ background: "#0a0a0a" }}>
       <Navbar />
 
-      <div className="flex-1 px-6 md:px-10 py-10">
+      <div className="flex-1 px-6 md:px-10 py-10" style={{ marginBottom: "2rem" }}>
 
         {/* Header */}
         <div className="mb-6 flex flex-col items-center gap-1" style={{ padding: "2rem 0" }}>
@@ -194,7 +194,7 @@ export const Championship = () => {
 
         {/* Driver standings */}
         {!loading && !error && hasStandings && tab === "drivers" && (
-          <div className="flex flex-col gap-2 max-w-3xl">
+          <div className="w-full flex flex-col gap-2 max-w-3xl justify-self-center">
             {(driverData?.standings ?? []).map(driver => {
               const color = getTeamColor(driver.teamId);
               const isTop3 = driver.position <= 3;
@@ -206,6 +206,7 @@ export const Championship = () => {
                   style={{
                     background: isTop3 ? `${color}12` : "rgba(18,18,18,0.95)",
                     border: `1px solid ${isTop3 ? `${color}35` : "rgba(255,255,255,0.07)"}`,
+                    padding: "0.5rem 1.25rem",
                   }}
                 >
                   {/* Left color bar */}
@@ -269,7 +270,7 @@ export const Championship = () => {
 
         {/* Constructor standings */}
         {!loading && !error && hasStandings && tab === "constructors" && (
-          <div className="flex flex-col gap-2 max-w-3xl">
+          <div className="w-full flex flex-col gap-2 max-w-3xl justify-self-center">
             {(constructorData?.standings ?? []).map(team => {
               const color = getTeamColor(team.constructorId);
               const isTop3 = team.position <= 3;
@@ -280,6 +281,7 @@ export const Championship = () => {
                   style={{
                     background: isTop3 ? `${color}12` : "rgba(18,18,18,0.95)",
                     border: `1px solid ${isTop3 ? `${color}35` : "rgba(255,255,255,0.07)"}`,
+                    padding: "0.5rem 1.25rem",
                   }}
                 >
                   {/* Left color bar */}

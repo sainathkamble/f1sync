@@ -74,7 +74,7 @@ const handleLogin = async () => {
   return (
     <div className="relative w-screen h-dvh overflow-hidden text-white">
       <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" style={{ filter: "grayscale(90%)", zIndex: 0 }}>
-        <source src="/f1.mp4" type="video/mp4" />
+        <source src="https://res.cloudinary.com/dwrydexn6/video/upload/v1773134562/f1-compressed_b3synn.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.78)", zIndex: 1 }} />
       <div className="absolute inset-0 overflow-y-auto flex items-center justify-center px-4 py-8" style={{ zIndex: 2 }}>

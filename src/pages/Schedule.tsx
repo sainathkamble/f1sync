@@ -59,7 +59,7 @@ export const Schedule = () => {
     <div className="min-h-screen text-white flex flex-col" style={{ background: "#0a0a0a" }}>
       <Navbar />
 
-      <div className="flex-1 px-6 md:px-10 py-10">
+      <div className="flex-1 px-6 md:px-10 py-10" style={{ marginBottom: "2rem" }}>
         <div className="flex flex-col items-center gap-1" style={{ padding: "2rem 0" }}>
           <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Formula 1</p>
           <h1 className="text-3xl font-black tracking-wide">2025 Season Schedule</h1>
