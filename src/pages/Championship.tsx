@@ -194,7 +194,7 @@ export const Championship = () => {
 
         {/* Driver standings */}
         {!loading && !error && hasStandings && tab === "drivers" && (
-          <div className="w-full flex flex-col gap-2 max-w-3xl justify-self-center">
+          <div className="w-full h-[60dvh] flex flex-col gap-2 max-w-3xl justify-self-center overflow-y-scroll">
             {(driverData?.standings ?? []).map(driver => {
               const color = getTeamColor(driver.teamId);
               const isTop3 = driver.position <= 3;
@@ -270,7 +270,7 @@ export const Championship = () => {
 
         {/* Constructor standings */}
         {!loading && !error && hasStandings && tab === "constructors" && (
-          <div className="w-full flex flex-col gap-2 max-w-3xl justify-self-center">
+          <div className="w-full h-[60dvh] flex flex-col gap-2 max-w-3xl justify-self-center overflow-y-scroll">
             {(constructorData?.standings ?? []).map(team => {
               const color = getTeamColor(team.constructorId);
               const isTop3 = team.position <= 3;

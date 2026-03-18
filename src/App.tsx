@@ -9,7 +9,6 @@ import { Constructors } from "./pages/Constructors.tsx";
 import { Schedule } from "./pages/Schedule.tsx";
 import { Stream } from "./pages/Stream.tsx";
 import { Championship } from "./pages/Championship.tsx";
-
 function App() {
 
   return (

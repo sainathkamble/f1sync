@@ -60,6 +60,14 @@ const handleRegister = async () => {
   }
 };
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.(com|in)$/i;
+
+const isFormValid = 
+  emailRegex.test(form.email) &&
+  form.username.trim() !== "" && 
+  form.password.trim() !== "" && 
+  preview !== null;
+
   const inputStyle = {
     background: "rgba(255,255,255,0.08)",
     border: "1px solid rgba(255,255,255,0.18)",
@@ -104,7 +112,7 @@ const handleRegister = async () => {
 
           {error && (
             <div className="mb-4 px-4 py-3 rounded-lg text-sm text-center"
-              style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", color: "#fca5a5" }}
+              style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", color: "#fca5a5", padding: "0.75rem", margin: "1rem 0" }}
             >
               {error}
             </div>
@@ -199,13 +207,33 @@ const handleRegister = async () => {
               />
             </div>
 
+            {!isFormValid && (
+              <div className="flex flex-wrap gap-2">
+                {!emailRegex.test(form.email) && (
+                  <span className="text-xs px-2 py-1 rounded" style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#fca5a5", padding: "0.25rem 0.5rem" }}>
+                    {form.email.trim() === "" ? "Email required" : "Please enter a valid email!"}
+                  </span>
+                )}
+                {!form.username.trim() && <span className="text-xs px-2 py-1 rounded" style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#fca5a5", padding: "0.25rem 0.5rem" }}>Username required</span>}
+                {!form.password.trim() && <span className="text-xs px-2 py-1 rounded" style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#fca5a5", padding: "0.25rem 0.5rem" }}>Password required</span>}
+                {!preview && <span className="text-xs px-2 py-1 rounded" style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#fca5a5", padding: "0.25rem 0.5rem" }}>Profile picture required</span>}
+              </div>
+            )}
+
             <button
               onClick={handleRegister}
-              disabled={loading}
+              disabled={loading || !isFormValid}
               className="w-full rounded-lg font-bold text-white text-base flex items-center justify-center gap-2 mt-1"
-              style={{ background: loading ? "#9b1c1c" : "#dc2626", border: "none", padding: "0.85rem", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", opacity: loading ? 0.8 : 1 }}
-              onMouseOver={e => { if (!loading) { e.currentTarget.style.background = "#ef4444"; e.currentTarget.style.transform = "scale(1.02)"; } }}
-              onMouseOut={e => { e.currentTarget.style.background = loading ? "#9b1c1c" : "#dc2626"; e.currentTarget.style.transform = "scale(1)"; }}
+              style={{ 
+                background: loading ? "#9b1c1c" : !isFormValid ? "#4b4b4b" : "#dc2626", 
+                border: "none", 
+                padding: "0.85rem", 
+                cursor: loading || !isFormValid ? "not-allowed" : "pointer", 
+                transition: "all 0.2s", 
+                opacity: loading || !isFormValid ? 0.6 : 1 
+              }}
+              onMouseOver={e => { if (!loading && isFormValid) { e.currentTarget.style.background = "#ef4444"; e.currentTarget.style.transform = "scale(1.02)"; } }}
+              onMouseOut={e => { e.currentTarget.style.background = loading ? "#9b1c1c" : !isFormValid ? "#4b4b4b" : "#dc2626"; e.currentTarget.style.transform = "scale(1)"; }}
             >
               {loading ? "Creating Account..." : "Create Account"}
               {!loading && <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>}

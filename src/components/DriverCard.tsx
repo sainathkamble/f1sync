@@ -283,7 +283,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
 
                   {/* Career stats grid */}
                   <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#6b7280", margin: "0.25rem 0" }}>Career Stats</p>
-                  <div className="grid grid-cols-3 gap-2.5 mb-5">
+                  <div className="grid grid-cols-3 gap-2.5 mb-5" style={{ marginBottom: "0.75rem" }}>
                     <StatBox label="Wins" value={details.stats.wins} color={teamColor} />
                     <StatBox label="Podiums" value={details.stats.podiums} />
                     <StatBox label="Poles" value={details.stats.polePositions} />
@@ -293,7 +293,7 @@ export const DriverCard = ({ driver, driverIdMap }: Props) => {
                   </div>
 
                   {/* Career span */}
-                  <div className="grid grid-cols-3 gap-2.5 mb-5">
+                  <div className="grid grid-cols-3 gap-2.5 mb-5" style={{ marginBottom: "0.75rem" }}>
                     <StatBox label="Seasons" value={details.stats.seasons} />
                     <StatBox label="First Season" value={details.stats.firstSeason ?? "—"} />
                     <StatBox label="Latest Season" value={details.stats.latestSeason ?? "—"} />

@@ -9,10 +9,10 @@ export const Navbar = () => {
   const navLinks = [
     { label: "Home", path: "/home" },
     { label: "Watch Live", path: "/stream" },
-    { label: "Schedule 2026", path: "/schedule" },
+    { label: "Schedule", path: "/schedule" },
     { label: "Drivers", path: "/drivers" },
     { label: "Constructors", path: "/constructors" },
-    { label: "Championship 2026", path: "/championship" },
+    { label: "Championship", path: "/championship" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
