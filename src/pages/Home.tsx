@@ -586,13 +586,13 @@ export const Home = () => {
     };
 
     /** Given a raw payload object and a lookup map, find the matching DriverRow */
-    const findByRaw = (raw: any, lookup: Map<string, DriverRow>): DriverRow | undefined => {
-      for (const id of rawDriverIds(raw)) {
-        const found = lookup.get(id);
-        if (found) return found;
-      }
-      return undefined;
-    };
+    // const findByRaw = (raw: any, lookup: Map<string, DriverRow>): DriverRow | undefined => {
+    //   for (const id of rawDriverIds(raw)) {
+    //     const found = lookup.get(id);
+    //     if (found) return found;
+    //   }
+    //   return undefined;
+    // };
 
     // ─── DriverList – seeds the full driver list from the server ────────────────
     const handleDriverList = (payload: any) => {
@@ -636,9 +636,9 @@ export const Home = () => {
 
       setDrivers((prev) => {
         if (prev.length === 0) return prev; // wait for DriverList
-        const lookup = buildLookup(prev);
+        // const lookup = buildLookup(prev);
         const updated = prev.map((d) => {
-          const raw = findByRaw({ driver_number: d.driver_number }, lookup);
+          // const raw = findByRaw({ driver_number: d.driver_number }, lookup);
           // find this driver in the incoming list
           const payload = list.find((r) => rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0")));
           if (!payload) return d;
