@@ -35,17 +35,10 @@
 | [React Router v6](https://reactrouter.com/) | Client-side routing |
 | [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling |
 
-### Backend
-| Technology | Purpose |
-|---|---|
-| Node.js / Express | REST API server |
-| Custom API | F1 data — schedules, drivers, standings |
-
 ### Deployment
 | Service | Purpose |
 |---|---|
 | [Vercel](https://vercel.com/) | Frontend hosting |
-| Backend server | API hosting (port 8000) |
 
 ---
 
