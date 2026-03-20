@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Navbar } from "../components/Navbar.tsx";
 import { Footer } from "../components/Footer.tsx";
 import { io, Socket } from "socket.io-client";
+import { TrackMap } from "../components/TrackMap.tsx";
 
 interface DriverRow {
   position: number;
@@ -57,6 +58,15 @@ interface RaceControlMessage {
   Scope: string;
 }
 
+interface DriverTrackPosition {
+  driver_number: number;
+  name_acronym: string;
+  team_colour: string;
+  x: number;
+  y: number;
+  z?: number;
+}
+
 const TYRE_COLORS: Record<string, string> = {
   SOFT: "#E8002D",
   MEDIUM: "#FFF200",
@@ -83,7 +93,6 @@ const normalizeList = <T,>(value: T | T[] | null | undefined): T[] => {
   return [value];
 };
 
-/** Build a blank DriverRow from any raw driver object coming off the wire */
 const buildDriverRow = (raw: any): DriverRow => ({
   position: Number(raw.Position ?? raw.position ?? raw.Line ?? raw.line ?? 99) || 99,
   driver_number: Number(raw.driver_number ?? raw.RacingNumber ?? raw.car_number ?? raw.number ?? 0),
@@ -108,7 +117,6 @@ const buildDriverRow = (raw: any): DriverRow => ({
   radio_available: false,
 });
 
-/** Returns all IDs (as strings) that identify this raw driver object */
 const rawDriverIds = (raw: any): string[] => {
   const ids: string[] = [];
   for (const key of ["driver_number", "RacingNumber", "car_number", "number", "Line"]) {
@@ -218,7 +226,6 @@ const ThrottleBar = ({ value, braking }: { value: number; braking: boolean }) =>
   </div>
 );
 
-/** Parse "1:18.422" → seconds float for delta math */
 const parseTime = (t?: string): number | null => {
   if (!t) return null;
   const parts = t.split(":");
@@ -235,8 +242,6 @@ const LapTimesCell = ({ best, last }: { best?: string; last?: string }) => {
   const bestSec = parseTime(best);
   const lastSec = parseTime(last);
   const delta = bestSec !== null && lastSec !== null ? lastSec - bestSec : null;
-
-  // Colour logic: purple = personal best matched, green = faster, red = slower
   const deltaColor = delta === null ? "#555" : delta <= 0 ? "#b48aff" : delta < 0.5 ? "#39B54A" : "#E8002D";
   const deltaStr = delta === null ? "—" : delta === 0 ? "PB" : `${delta > 0 ? "+" : ""}${delta.toFixed(3)}`;
 
@@ -247,21 +252,15 @@ const LapTimesCell = ({ best, last }: { best?: string; last?: string }) => {
     >
       <div className="flex items-center justify-between w-full">
         <span style={{ fontFamily: "monospace", fontSize: 8, color: "#444", letterSpacing: "0.08em" }}>BEST</span>
-        <span style={{ fontFamily: "monospace", fontSize: 10, color: "#b48aff", fontWeight: 600 }}>
-          {best ?? "—"}
-        </span>
+        <span style={{ fontFamily: "monospace", fontSize: 10, color: "#b48aff", fontWeight: 600 }}>{best ?? "—"}</span>
       </div>
       <div className="flex items-center justify-between w-full">
         <span style={{ fontFamily: "monospace", fontSize: 8, color: "#444", letterSpacing: "0.08em" }}>LAST</span>
-        <span style={{ fontFamily: "monospace", fontSize: 10, color: "#aaa" }}>
-          {last ?? "—"}
-        </span>
+        <span style={{ fontFamily: "monospace", fontSize: 10, color: "#aaa" }}>{last ?? "—"}</span>
       </div>
       <div className="flex items-center justify-between w-full">
         <span style={{ fontFamily: "monospace", fontSize: 8, color: "#444", letterSpacing: "0.08em" }}>Δ</span>
-        <span style={{ fontFamily: "monospace", fontSize: 10, color: deltaColor, fontWeight: 600 }}>
-          {deltaStr}
-        </span>
+        <span style={{ fontFamily: "monospace", fontSize: 10, color: deltaColor, fontWeight: 600 }}>{deltaStr}</span>
       </div>
     </div>
   );
@@ -271,71 +270,25 @@ const PitCell = ({ inPit, retired, stopped }: { inPit?: boolean; retired?: boole
   if (retired) {
     return (
       <div className="flex items-center justify-center flex-shrink-0" style={{ width: 44, borderRight: "1px solid #1a1a1a", alignSelf: "stretch" }}>
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            color: "#E8002D",
-            backgroundColor: "#E8002D18",
-            border: "1px solid #E8002D44",
-            borderRadius: 3,
-            padding: "1px 4px",
-          }}
-        >
-          RET
-        </span>
+        <span style={{ fontFamily: "monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#E8002D", backgroundColor: "#E8002D18", border: "1px solid #E8002D44", borderRadius: 3, padding: "1px 4px" }}>RET</span>
       </div>
     );
   }
   if (stopped) {
     return (
       <div className="flex items-center justify-center flex-shrink-0" style={{ width: 44, borderRight: "1px solid #1a1a1a", alignSelf: "stretch" }}>
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            color: "#FF8000",
-            backgroundColor: "#FF800018",
-            border: "1px solid #FF800044",
-            borderRadius: 3,
-            padding: "1px 4px",
-          }}
-        >
-          STP
-        </span>
+        <span style={{ fontFamily: "monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#FF8000", backgroundColor: "#FF800018", border: "1px solid #FF800044", borderRadius: 3, padding: "1px 4px" }}>STP</span>
       </div>
     );
   }
   if (inPit) {
     return (
       <div className="flex items-center justify-center flex-shrink-0" style={{ width: 44, borderRight: "1px solid #1a1a1a", alignSelf: "stretch" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-          <span
-            style={{
-              fontFamily: "monospace",
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              color: "#39B54A",
-              backgroundColor: "#39B54A18",
-              border: "1px solid #39B54A44",
-              borderRadius: 3,
-              padding: "1px 4px",
-              animation: "pitPulse 1s ease-in-out infinite",
-            }}
-          >
-            PIT
-          </span>
-        </div>
+        <span style={{ fontFamily: "monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#39B54A", backgroundColor: "#39B54A18", border: "1px solid #39B54A44", borderRadius: 3, padding: "1px 4px", animation: "pitPulse 1s ease-in-out infinite" }}>PIT</span>
         <style>{`@keyframes pitPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
       </div>
     );
   }
-  // On track — show a subtle green dot
   return (
     <div className="flex items-center justify-center flex-shrink-0" style={{ width: 44, borderRight: "1px solid #1a1a1a", alignSelf: "stretch" }}>
       <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#39B54A", opacity: 0.35 }} />
@@ -396,17 +349,9 @@ const RaceControlPanel = ({ messages }: { messages: RaceControlMessage[] }) => (
         <div
           key={i}
           className="px-3 py-2 border-b flex gap-2 items-start"
-          style={{
-            borderColor: "#1a1a1a",
-            backgroundColor: i === 0 ? "#ffffff05" : "transparent",
-            animation: i === 0 ? "flashIn 0.5s ease" : "none",
-            padding: "8px 12px",
-          }}
+          style={{ borderColor: "#1a1a1a", backgroundColor: i === 0 ? "#ffffff05" : "transparent", animation: i === 0 ? "flashIn 0.5s ease" : "none", padding: "8px 12px" }}
         >
-          <div
-            className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
-            style={{ backgroundColor: FLAG_COLORS[msg.Flag ?? "GREEN"] ?? "#555", marginTop: 6 }}
-          />
+          <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: FLAG_COLORS[msg.Flag ?? "GREEN"] ?? "#555", marginTop: 6 }} />
           <div className="flex-1 min-w-0 text-white">
             <div style={{ fontFamily: "monospace", fontSize: 9, color: "#555", letterSpacing: "0.08em" }}>
               {(msg.Category ?? "UNKNOWN").toString().toUpperCase()}
@@ -498,23 +443,11 @@ const DriverRowItem = ({ driver, index }: { driver: DriverRow; index: number }) 
         <RadioButton available={driver.radio_available} url={driver.radio_url} />
       </div>
 
-      {/* PIT status */}
       <PitCell inPit={driver.in_pit} retired={driver.retired} stopped={driver.stopped} />
-
-      {/* Best vs Last lap */}
       <LapTimesCell best={driver.best_lap_time} last={driver.last_lap_time} />
 
-      {/* Gap / interval */}
       <div className="flex items-center justify-end flex-1 px-2" style={{ alignSelf: "stretch", padding: "0 8px" }}>
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 11,
-            color: driver.interval === "LEADER" ? "#FFF200" : "#aaa",
-            fontWeight: driver.interval === "LEADER" ? 700 : 400,
-            letterSpacing: "0.04em",
-          }}
-        >
+        <span style={{ fontFamily: "monospace", fontSize: 11, color: driver.interval === "LEADER" ? "#FFF200" : "#aaa", fontWeight: driver.interval === "LEADER" ? 700 : 400, letterSpacing: "0.04em" }}>
           {driver.interval}
         </span>
       </div>
@@ -523,19 +456,13 @@ const DriverRowItem = ({ driver, index }: { driver: DriverRow; index: number }) 
 };
 
 const ColHeader = ({ label, width }: { label: string; width: string }) => (
-  <div
-    className="flex items-center justify-center flex-shrink-0"
-    style={{ width, borderRight: "1px solid #111", padding: "0 4px", height: "100%" }}
-  >
+  <div className="flex items-center justify-center flex-shrink-0" style={{ width, borderRight: "1px solid #111", padding: "0 4px", height: "100%" }}>
     <span style={{ fontFamily: "monospace", fontSize: 9, color: "#444", letterSpacing: "0.12em" }}>{label}</span>
   </div>
 );
 
 const SectionLabel = ({ children }: { children: string }) => (
-  <div
-    className="px-3 py-1.5 flex items-center gap-2"
-    style={{ borderBottom: "1px solid #1a1a1a", backgroundColor: "#0a0a0a", padding: "6px 12px" }}
-  >
+  <div className="px-3 py-1.5 flex items-center gap-2" style={{ borderBottom: "1px solid #1a1a1a", backgroundColor: "#0a0a0a", padding: "6px 12px" }}>
     <div className="w-1 h-3 rounded-sm" style={{ backgroundColor: "#E8002D" }} />
     <span style={{ fontFamily: "monospace", fontSize: 9, color: "#555", letterSpacing: "0.18em" }}>{children}</span>
   </div>
@@ -546,6 +473,10 @@ export const Home = () => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [raceControl, setRaceControl] = useState<RaceControlMessage[]>([]);
   const [connected, setConnected] = useState(false);
+
+  const [circuitShortName, setCircuitShortName] = useState<string | null>(null);
+  const [trackPositions, setTrackPositions] = useState<Record<string, DriverTrackPosition>>({});
+
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -572,9 +503,6 @@ export const Home = () => {
     socket.on("disconnect", (reason) => { setConnected(false); console.warn("WS disconnected", reason); });
     socket.on("error", (err) => console.error("WS error", err));
 
-    // ─── Helpers ────────────────────────────────────────────────────────────────
-
-    /** Build a stable lookup Map<normalisedId, DriverRow> from current state */
     const buildLookup = (list: DriverRow[]): Map<string, DriverRow> => {
       const m = new Map<string, DriverRow>();
       for (const d of list) {
@@ -585,43 +513,36 @@ export const Home = () => {
       return m;
     };
 
-    /** Given a raw payload object and a lookup map, find the matching DriverRow */
-    // const findByRaw = (raw: any, lookup: Map<string, DriverRow>): DriverRow | undefined => {
-    //   for (const id of rawDriverIds(raw)) {
-    //     const found = lookup.get(id);
-    //     if (found) return found;
-    //   }
-    //   return undefined;
-    // };
+    const handleSessionInfo = (payload: any) => {
+      const raw = payload?.data ?? payload;
+      if (!raw) return;
+      const shortName =
+        raw?.Meeting?.Circuit?.ShortName ??
+        raw?.Circuit?.ShortName ??
+        raw?.meeting?.circuit?.shortName ??
+        null;
+      if (shortName) setCircuitShortName(shortName);
+    };
 
-    // ─── DriverList – seeds the full driver list from the server ────────────────
+    socket.on("livetiming:SessionInfo", ({ data }) => handleSessionInfo(data));
+    socket.on("SessionInfo", ({ data }) => handleSessionInfo(data));
+
     const handleDriverList = (payload: any) => {
       const raw = payload?.data ?? payload;
       if (!raw) return;
-
-      // Normalise to a flat array of raw driver objects
-      const list: any[] = Array.isArray(raw)
-        ? raw
-        : typeof raw === "object"
-        ? Object.values(raw)
-        : [];
-
+      const list: any[] = Array.isArray(raw) ? raw : typeof raw === "object" ? Object.values(raw) : [];
       if (list.length === 0) return;
 
       setDrivers((prev) => {
         const lookup = buildLookup(prev);
         const next = new Map<number, DriverRow>();
-
         for (const rawDriver of list) {
           if (!rawDriver || typeof rawDriver !== "object") continue;
           const row = buildDriverRow(rawDriver);
           if (!row.driver_number) continue;
-
-          // Merge with any existing row so we don't lose live telemetry already received
           const existing = lookup.get(String(row.driver_number));
           next.set(row.driver_number, existing ? { ...row, ...existing, name_acronym: row.name_acronym, team_colour: row.team_colour } : row);
         }
-
         return [...next.values()].sort((a, b) => a.position - b.position);
       });
     };
@@ -629,18 +550,65 @@ export const Home = () => {
     socket.on("livetiming:DriverList", ({ data }) => handleDriverList(data));
     socket.on("DriverList", ({ data }) => handleDriverList(data));
 
-    // ─── Position ────────────────────────────────────────────────────────────────
     const updatePosition = (data: any) => {
       if (!data) return;
-      const list: any[] = Array.isArray(data) ? data : Object.values(data);
 
-      setDrivers((prev) => {
-        if (prev.length === 0) return prev; // wait for DriverList
-        // const lookup = buildLookup(prev);
-        const updated = prev.map((d) => {
-          // const raw = findByRaw({ driver_number: d.driver_number }, lookup);
-          // find this driver in the incoming list
-          const payload = list.find((r) => rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0")));
+      setDrivers((prevDrivers) => {
+        const driverMeta: Record<number, { acronym: string; colour: string }> = {};
+        for (const d of prevDrivers) {
+          driverMeta[d.driver_number] = { acronym: d.name_acronym, colour: d.team_colour };
+        }
+
+        const entries: Array<{ num: number; x: number; y: number; z?: number }> = [];
+
+        if (Array.isArray(data)) {
+          for (const item of data) {
+            const num = Number(item.RacingNumber ?? item.driver_number ?? item.Number ?? 0);
+            if (!num) continue;
+            entries.push({ num, x: Number(item.X ?? item.x ?? 0), y: Number(item.Y ?? item.y ?? 0), z: Number(item.Z ?? item.z ?? 0) });
+          }
+        } else if (typeof data === "object") {
+          const keys = Object.keys(data);
+          const allNumeric = keys.every((k) => !isNaN(Number(k)));
+          if (allNumeric) {
+            for (const [key, val] of Object.entries(data)) {
+              const num = Number(key);
+              const v: any = val;
+              entries.push({ num, x: Number(v?.X ?? v?.x ?? 0), y: Number(v?.Y ?? v?.y ?? 0), z: Number(v?.Z ?? v?.z ?? 0) });
+            }
+          } else {
+            const inner = data?.Entries ?? data?.entries ?? data?.Positions ?? data?.positions;
+            if (inner) {
+              updatePosition(inner);
+              return prevDrivers;
+            }
+          }
+        }
+
+        if (entries.length > 0) {
+          setTrackPositions((prev) => {
+            const next = { ...prev };
+            for (const { num, x, y, z } of entries) {
+              const meta = driverMeta[num];
+              if (!meta) continue;
+              next[String(num)] = {
+                driver_number: num,
+                name_acronym: meta.acronym,
+                team_colour: meta.colour,
+                x,
+                y,
+                z,
+              };
+            }
+            return next;
+          });
+        }
+
+        const list: any[] = Array.isArray(data) ? data : Object.values(data);
+        const updated = prevDrivers.map((d) => {
+          const payload = list.find((r) =>
+            rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0"))
+          );
           if (!payload) return d;
           return {
             ...d,
@@ -658,11 +626,9 @@ export const Home = () => {
     socket.on("Position.z", ({ data }) => updatePosition(data));
     socket.on("Position", ({ data }) => updatePosition(data));
 
-    // ─── CarData ─────────────────────────────────────────────────────────────────
     const updateCarData = (data: any) => {
       if (!data) return;
       const list: any[] = Array.isArray(data) ? data : Object.values(data);
-
       setDrivers((prev) => {
         if (prev.length === 0) return prev;
         return prev.map((d) => {
@@ -685,62 +651,46 @@ export const Home = () => {
     socket.on("CarData.z", ({ data }) => updateCarData(data));
     socket.on("CarData", ({ data }) => updateCarData(data));
 
-    // ─── TimingData ───────────────────────────────────────────────────────────────
     const updateTimingData = (payload: any) => {
       const raw = payload?.data ?? payload;
       if (!raw) return;
-
-      const lines = Array.isArray(raw)
-        ? raw
-        : raw?.Lines ?? raw?.lines ?? raw?.Data ?? raw?.data ?? raw;
+      const lines = Array.isArray(raw) ? raw : raw?.Lines ?? raw?.lines ?? raw?.Data ?? raw?.data ?? raw;
       if (!lines) return;
-
       const list: any[] = Array.isArray(lines) ? lines : Object.values(lines);
       if (list.length === 0) return;
 
-      // Build id→raw map
       const byId = new Map<string, any>();
       for (const row of list) {
         if (!row || typeof row !== "object") continue;
-        for (const id of rawDriverIds(row)) {
-          byId.set(id, row);
-        }
+        for (const id of rawDriverIds(row)) byId.set(id, row);
       }
 
       setDrivers((prev) => {
-        // If no drivers yet, seed them from TimingData itself
         if (prev.length === 0) {
-          const seeded = list
-            .map((r) => buildDriverRow(r))
-            .filter((d) => d.driver_number > 0)
-            .sort((a, b) => a.position - b.position);
+          const seeded = list.map((r) => buildDriverRow(r)).filter((d) => d.driver_number > 0).sort((a, b) => a.position - b.position);
           if (seeded.length > 0) return seeded;
           return prev;
         }
-
-        return prev
-          .map((d) => {
-            const id = String(d.driver_number);
-            const row = byId.get(id) ?? byId.get(id.padStart(2, "0"));
-            if (!row) return d;
-
-            return {
-              ...d,
-              position: Number(row.Position ?? row.position ?? row.Line ?? d.position) || d.position,
-              interval: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval,
-              gap_to_leader: row.GapToLeader ?? row.gap_to_leader ?? d.gap_to_leader,
-              best_lap_time: row.BestLapTime?.Value ?? row.best_lap_time ?? d.best_lap_time,
-              last_lap_time: row.LastLapTime?.Value ?? row.last_lap_time ?? d.last_lap_time,
-              in_pit: Boolean(row.InPit ?? row.in_pit ?? d.in_pit),
-              retired: Boolean(row.Retired ?? row.retired ?? d.retired),
-              stopped: Boolean(row.Stopped ?? row.stopped ?? d.stopped),
-              show_position: row.ShowPosition ?? d.show_position,
-              status: row.Status ?? d.status,
-              line: row.Line ?? d.line,
-              interval_to_position_ahead: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval_to_position_ahead,
-            };
-          })
-          .sort((a, b) => a.position - b.position);
+        return prev.map((d) => {
+          const id = String(d.driver_number);
+          const row = byId.get(id) ?? byId.get(id.padStart(2, "0"));
+          if (!row) return d;
+          return {
+            ...d,
+            position: Number(row.Position ?? row.position ?? row.Line ?? d.position) || d.position,
+            interval: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval,
+            gap_to_leader: row.GapToLeader ?? row.gap_to_leader ?? d.gap_to_leader,
+            best_lap_time: row.BestLapTime?.Value ?? row.best_lap_time ?? d.best_lap_time,
+            last_lap_time: row.LastLapTime?.Value ?? row.last_lap_time ?? d.last_lap_time,
+            in_pit: Boolean(row.InPit ?? row.in_pit ?? d.in_pit),
+            retired: Boolean(row.Retired ?? row.retired ?? d.retired),
+            stopped: Boolean(row.Stopped ?? row.stopped ?? d.stopped),
+            show_position: row.ShowPosition ?? d.show_position,
+            status: row.Status ?? d.status,
+            line: row.Line ?? d.line,
+            interval_to_position_ahead: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval_to_position_ahead,
+          };
+        }).sort((a, b) => a.position - b.position);
       });
     };
 
@@ -749,19 +699,16 @@ export const Home = () => {
     socket.on("TimingData", updateTimingData);
     socket.on("TimingData.z", updateTimingData);
 
-    // ─── WeatherData ──────────────────────────────────────────────────────────────
     socket.on("livetiming:WeatherData", ({ data }) => {
       const w = Array.isArray(data) ? data[0] : data;
       setWeather(w ?? null);
     });
 
-    // ─── RaceControlMessages ──────────────────────────────────────────────────────
     socket.on("livetiming:RaceControlMessages", ({ data }) => {
       const messages = normalizeList(data?.Messages ?? data);
       setRaceControl(messages as RaceControlMessage[]);
     });
 
-    // ─── Radio ────────────────────────────────────────────────────────────────────
     socket.on("livetiming:radio", ({ data }) => {
       const clips = normalizeList(data);
       setDrivers((prev) =>
@@ -785,21 +732,29 @@ export const Home = () => {
       <Navbar />
 
       <div className="mx-auto w-full max-w-6xl px-3 pb-4 pt-2 lg:px-4">
-        {/* Live indicator */}
+
         <div className="mt-2 rounded-md border border-[#1f1f1f] bg-[#0b0b0b] p-2 text-xs text-slate-300 flex items-center gap-2" style={{ padding: "4px 8px" }}>
           <span className={`inline-block h-2.5 w-2.5 rounded-full ${connected ? "bg-[#E8002D] shadow-[0_0_8px_#E8002D]" : "bg-[#444]"}`} />
           <span className="font-mono tracking-[0.18em] text-[11px]">{connected ? "LIVE" : "CONNECTING..."}</span>
+          {circuitShortName && (
+            <span className="font-mono text-[10px] text-[#555] ml-2 tracking-widest">
+              {circuitShortName.toUpperCase()}
+            </span>
+          )}
           <span className="ml-auto text-[#777]">WS: {connected ? "ONLINE" : "OFFLINE"}</span>
         </div>
 
-        {/* Main layout */}
         <div className="mt-3 flex min-h-[72vh] flex-col gap-3 lg:flex-row" style={{ marginTop: "12px" }}>
-          {/* Left column */}
+
           <div className="flex w-full flex-col gap-2 rounded-xl border border-[#1a1a1a] bg-[#090909] p-2 lg:w-[28%] lg:p-3" style={{ padding: "8px" }}>
+
             <div className="rounded-md border border-[#1c1c1c] bg-[#0c0c0c]">
-              <SectionLabel>LIVE STREAM</SectionLabel>
-              <div className="relative overflow-hidden rounded-b-md border-t border-[#1a1a1a]" style={{ paddingBottom: "56.25%" }}>
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d0d] text-center" />
+              <SectionLabel>TRACK MAP</SectionLabel>
+              <div style={{ padding: "8px" }}>
+                <TrackMap
+                  driverPositions={trackPositions}
+                  circuitShortName={circuitShortName}
+                />
               </div>
             </div>
 
@@ -814,7 +769,6 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Right column */}
           <div className="h-[80dvh] flex flex-1 flex-col overflow-hidden rounded-xl border border-[#1a1a1a] bg-[#0a0a0a] p-1 lg:p-2" style={{ padding: "4px" }}>
             <div className="flex min-h-[28px] items-center rounded-md border border-[#1a1a1a] bg-[#101010] text-[10px] font-medium uppercase text-[#888]">
               <ColHeader label="P" width="28px" />
