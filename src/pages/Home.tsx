@@ -499,7 +499,16 @@ export const Home = () => {
     socket.on("reconnect_attempt", (attempt) => console.warn("WS reconnect_attempt", attempt));
     socket.on("reconnect_failed", () => console.error("WS reconnect_failed"));
     socket.on("joined:livetiming", () => {});
-    socket.onAny((event, payload) => console.debug("WS EVENT", event, payload));
+    
+    // Track events so we only log them once
+    const loggedEvents = new Set<string>();
+    socket.onAny((event, payload) => {
+      if (!loggedEvents.has(event)) {
+        console.log(`[ONCE] WS EVENT: ${event}`, payload);
+        loggedEvents.add(event);
+      }
+    });
+
     socket.on("disconnect", (reason) => { setConnected(false); console.warn("WS disconnected", reason); });
     socket.on("error", (err) => console.error("WS error", err));
 
@@ -550,154 +559,307 @@ export const Home = () => {
     socket.on("livetiming:DriverList", ({ data }) => handleDriverList(data));
     socket.on("DriverList", ({ data }) => handleDriverList(data));
 
+    // const updatePosition = (data: any) => {
+    //   if (!data) return;
+
+    //   setDrivers((prevDrivers) => {
+    //     const driverMeta: Record<number, { acronym: string; colour: string }> = {};
+    //     for (const d of prevDrivers) {
+    //       driverMeta[d.driver_number] = { acronym: d.name_acronym, colour: d.team_colour };
+    //     }
+
+    //     const entries: Array<{ num: number; x: number; y: number; z?: number }> = [];
+
+    //     if (Array.isArray(data)) {
+    //       for (const item of data) {
+    //         const num = Number(item.RacingNumber ?? item.driver_number ?? item.Number ?? 0);
+    //         if (!num) continue;
+    //         entries.push({ num, x: Number(item.X ?? item.x ?? 0), y: Number(item.Y ?? item.y ?? 0), z: Number(item.Z ?? item.z ?? 0) });
+    //       }
+    //     } else if (typeof data === "object") {
+    //       const keys = Object.keys(data);
+    //       const allNumeric = keys.every((k) => !isNaN(Number(k)));
+    //       if (allNumeric) {
+    //         for (const [key, val] of Object.entries(data)) {
+    //           const num = Number(key);
+    //           const v: any = val;
+    //           entries.push({ num, x: Number(v?.X ?? v?.x ?? 0), y: Number(v?.Y ?? v?.y ?? 0), z: Number(v?.Z ?? v?.z ?? 0) });
+    //         }
+    //       } else {
+    //         const inner = data?.Entries ?? data?.entries ?? data?.Positions ?? data?.positions;
+    //         if (inner) {
+    //           updatePosition(inner);
+    //           return prevDrivers;
+    //         }
+    //       }
+    //     }
+
+    //     if (entries.length > 0) {
+    //       setTrackPositions((prev) => {
+    //         const next = { ...prev };
+    //         for (const { num, x, y, z } of entries) {
+    //           const meta = driverMeta[num];
+    //           if (!meta) continue;
+    //           next[String(num)] = {
+    //             driver_number: num,
+    //             name_acronym: meta.acronym,
+    //             team_colour: meta.colour,
+    //             x,
+    //             y,
+    //             z,
+    //           };
+    //         }
+    //         return next;
+    //       });
+    //     }
+
+    //     const list: any[] = Array.isArray(data) ? data : Object.values(data);
+    //     const updated = prevDrivers.map((d) => {
+    //       const payload = list.find((r) =>
+    //         rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0"))
+    //       );
+    //       if (!payload) return d;
+    //       return {
+    //         ...d,
+    //         position: Number(payload.Position ?? payload.position ?? payload.pos ?? d.position) || d.position,
+    //         interval: payload.IntervalToPositionAhead?.Value ?? payload.interval ?? payload.gap_to_leader ?? d.interval,
+    //         gap_to_leader: payload.GapToLeader ?? payload.gap_to_leader ?? payload.delta ?? d.gap_to_leader,
+    //       };
+    //     });
+    //     return updated.sort((a, b) => a.position - b.position);
+    //   });
+    // };
     const updatePosition = (data: any) => {
-      if (!data) return;
+  if (!data) return;
+  const entries: Array<{ num: number; x: number; y: number; z?: number }> = [];
 
-      setDrivers((prevDrivers) => {
-        const driverMeta: Record<number, { acronym: string; colour: string }> = {};
-        for (const d of prevDrivers) {
-          driverMeta[d.driver_number] = { acronym: d.name_acronym, colour: d.team_colour };
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      const num = Number(item.RacingNumber ?? item.driver_number ?? item.Number ?? 0);
+      if (!num) continue;
+      entries.push({ num, x: Number(item.X ?? item.x ?? 0), y: Number(item.Y ?? item.y ?? 0), z: Number(item.Z ?? item.z ?? 0) });
+    }
+  } else if (typeof data === "object") {
+    const keys = Object.keys(data);
+    const allNumeric = keys.every((k) => !isNaN(Number(k)));
+    if (allNumeric) {
+      for (const [key, val] of Object.entries(data)) {
+        const num = Number(key);
+        const v: any = val;
+        entries.push({ num, x: Number(v?.X ?? v?.x ?? 0), y: Number(v?.Y ?? v?.y ?? 0), z: Number(v?.Z ?? v?.z ?? 0) });
+      }
+    } else {
+      const inner = data?.Entries ?? data?.entries ?? data?.Positions ?? data?.positions;
+      if (inner) { updatePosition(inner); return; }
+    }
+  }
+
+  if (entries.length > 0) {
+    // ✅ Use setDrivers just to read current driver meta, then call setTrackPositions separately
+    setDrivers((prev) => {
+      const driverMeta: Record<number, { acronym: string; colour: string }> = {};
+      for (const d of prev) driverMeta[d.driver_number] = { acronym: d.name_acronym, colour: d.team_colour };
+
+      setTrackPositions((prevPos) => {
+        const next = { ...prevPos };
+        for (const { num, x, y, z } of entries) {
+          const meta = driverMeta[num];
+          if (!meta) continue;
+          next[String(num)] = { driver_number: num, name_acronym: meta.acronym, team_colour: meta.colour, x, y, z };
         }
-
-        const entries: Array<{ num: number; x: number; y: number; z?: number }> = [];
-
-        if (Array.isArray(data)) {
-          for (const item of data) {
-            const num = Number(item.RacingNumber ?? item.driver_number ?? item.Number ?? 0);
-            if (!num) continue;
-            entries.push({ num, x: Number(item.X ?? item.x ?? 0), y: Number(item.Y ?? item.y ?? 0), z: Number(item.Z ?? item.z ?? 0) });
-          }
-        } else if (typeof data === "object") {
-          const keys = Object.keys(data);
-          const allNumeric = keys.every((k) => !isNaN(Number(k)));
-          if (allNumeric) {
-            for (const [key, val] of Object.entries(data)) {
-              const num = Number(key);
-              const v: any = val;
-              entries.push({ num, x: Number(v?.X ?? v?.x ?? 0), y: Number(v?.Y ?? v?.y ?? 0), z: Number(v?.Z ?? v?.z ?? 0) });
-            }
-          } else {
-            const inner = data?.Entries ?? data?.entries ?? data?.Positions ?? data?.positions;
-            if (inner) {
-              updatePosition(inner);
-              return prevDrivers;
-            }
-          }
-        }
-
-        if (entries.length > 0) {
-          setTrackPositions((prev) => {
-            const next = { ...prev };
-            for (const { num, x, y, z } of entries) {
-              const meta = driverMeta[num];
-              if (!meta) continue;
-              next[String(num)] = {
-                driver_number: num,
-                name_acronym: meta.acronym,
-                team_colour: meta.colour,
-                x,
-                y,
-                z,
-              };
-            }
-            return next;
-          });
-        }
-
-        const list: any[] = Array.isArray(data) ? data : Object.values(data);
-        const updated = prevDrivers.map((d) => {
-          const payload = list.find((r) =>
-            rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0"))
-          );
-          if (!payload) return d;
-          return {
-            ...d,
-            position: Number(payload.Position ?? payload.position ?? payload.pos ?? d.position) || d.position,
-            interval: payload.IntervalToPositionAhead?.Value ?? payload.interval ?? payload.gap_to_leader ?? d.interval,
-            gap_to_leader: payload.GapToLeader ?? payload.gap_to_leader ?? payload.delta ?? d.gap_to_leader,
-          };
-        });
-        return updated.sort((a, b) => a.position - b.position);
+        return next;
       });
-    };
+
+      return prev; // don't change drivers
+    });
+
+    // Also update position/gap in drivers
+    setDrivers((prev) => {
+      return prev.map((d) => {
+        const entry = entries.find((e) => e.num === d.driver_number);
+        if (!entry) return d;
+        return d; // position updates come from TimingData, not Position.z
+      });
+    });
+  }
+};
 
     socket.on("livetiming:Position.z", ({ data }) => updatePosition(data));
     socket.on("livetiming:Position", ({ data }) => updatePosition(data));
     socket.on("Position.z", ({ data }) => updatePosition(data));
     socket.on("Position", ({ data }) => updatePosition(data));
 
+    // const updateCarData = (data: any) => {
+    //   if (!data) return;
+    //   const list: any[] = Array.isArray(data) ? data : Object.values(data);
+    //   setDrivers((prev) => {
+    //     if (prev.length === 0) return prev;
+    //     return prev.map((d) => {
+    //       const payload = list.find((r) => rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0")));
+    //       if (!payload) return d;
+    //       return {
+    //         ...d,
+    //         rpm: payload.rpm ?? payload.RPM ?? d.rpm,
+    //         speed: payload.speed ?? payload.Speed ?? d.speed,
+    //         throttle: payload.throttle ?? payload.Throttle ?? d.throttle,
+    //         brake: payload.brake === 1 || payload.brake === true || payload.brake === "1" ? true : d.brake,
+    //         drs: payload.drs ?? payload.DRS ?? d.drs,
+    //       };
+    //     });
+    //   });
+    // };
     const updateCarData = (data: any) => {
-      if (!data) return;
-      const list: any[] = Array.isArray(data) ? data : Object.values(data);
-      setDrivers((prev) => {
-        if (prev.length === 0) return prev;
-        return prev.map((d) => {
-          const payload = list.find((r) => rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0")));
-          if (!payload) return d;
-          return {
-            ...d,
-            rpm: payload.rpm ?? payload.RPM ?? d.rpm,
-            speed: payload.speed ?? payload.Speed ?? d.speed,
-            throttle: payload.throttle ?? payload.Throttle ?? d.throttle,
-            brake: payload.brake === 1 || payload.brake === true || payload.brake === "1" ? true : d.brake,
-            drs: payload.drs ?? payload.DRS ?? d.drs,
-          };
-        });
-      });
-    };
+  if (!data) return;
+  // F1 live feed: { Entries: { [timestamp]: { Cars: { [driverNum]: { Channels: [RPM,Speed,Throttle,Brake,DRS] } } } } }
+  const timestamps = data?.Entries ?? data?.entries;
+  if (timestamps && typeof timestamps === "object") {
+    // Get the latest timestamp entry
+    const latestKey = Object.keys(timestamps).sort().pop();
+    if (!latestKey) return;
+    const cars = timestamps[latestKey]?.Cars ?? timestamps[latestKey]?.cars;
+    if (!cars) return;
+
+    setDrivers((prev) =>
+      prev.map((d) => {
+        const carData = cars[String(d.driver_number)] ?? cars[String(d.driver_number).padStart(2, "0")];
+        if (!carData) return d;
+        // Channels: [0]=RPM, [1]=Speed, [2]=nGear, [3]=Throttle, [4]=Brake, [5]=DRS
+        const ch = carData.Channels ?? carData.channels ?? [];
+        const arr = Array.isArray(ch) ? ch : Object.values(ch);
+        return {
+          ...d,
+          rpm: Number(arr[0] ?? d.rpm),
+          speed: Number(arr[1] ?? d.speed),
+          throttle: Number(arr[3] ?? d.throttle),
+          brake: Number(arr[4] ?? 0) === 1,
+          drs: Number(arr[5] ?? d.drs),
+        };
+      })
+    );
+    return;
+  }
+
+  // Fallback: flat array/object format
+  const list: any[] = Array.isArray(data) ? data : Object.values(data);
+  setDrivers((prev) =>
+    prev.map((d) => {
+      const payload = list.find((r) =>
+        rawDriverIds(r).some((id) => id === String(d.driver_number) || id === String(d.driver_number).padStart(2, "0"))
+      );
+      if (!payload) return d;
+      return {
+        ...d,
+        rpm: payload.rpm ?? payload.RPM ?? d.rpm,
+        speed: payload.speed ?? payload.Speed ?? d.speed,
+        throttle: payload.throttle ?? payload.Throttle ?? d.throttle,
+        brake: payload.brake === 1 || payload.brake === true,
+        drs: payload.drs ?? payload.DRS ?? d.drs,
+      };
+    })
+  );
+};
 
     socket.on("livetiming:CarData.z", ({ data }) => updateCarData(data));
     socket.on("livetiming:CarData", ({ data }) => updateCarData(data));
     socket.on("CarData.z", ({ data }) => updateCarData(data));
     socket.on("CarData", ({ data }) => updateCarData(data));
 
+    // const updateTimingData = (payload: any) => {
+    //   const raw = payload?.data ?? payload;
+    //   if (!raw) return;
+    //   const lines = Array.isArray(raw) ? raw : raw?.Lines ?? raw?.lines ?? raw?.Data ?? raw?.data ?? raw;
+    //   if (!lines) return;
+    //   const list: any[] = Array.isArray(lines) ? lines : Object.values(lines);
+    //   if (list.length === 0) return;
+
+    //   const byId = new Map<string, any>();
+    //   for (const row of list) {
+    //     if (!row || typeof row !== "object") continue;
+    //     for (const id of rawDriverIds(row)) byId.set(id, row);
+    //   }
+
+    //   setDrivers((prev) => {
+    //     if (prev.length === 0) {
+    //       const seeded = list.map((r) => buildDriverRow(r)).filter((d) => d.driver_number > 0).sort((a, b) => a.position - b.position);
+    //       if (seeded.length > 0) return seeded;
+    //       return prev;
+    //     }
+    //     return prev.map((d) => {
+    //       const id = String(d.driver_number);
+    //       const row = byId.get(id) ?? byId.get(id.padStart(2, "0"));
+    //       if (!row) return d;
+    //       return {
+    //         ...d,
+    //         position: Number(row.Position ?? row.position ?? row.Line ?? d.position) || d.position,
+    //         interval: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval,
+    //         gap_to_leader: row.GapToLeader ?? row.gap_to_leader ?? d.gap_to_leader,
+    //         best_lap_time: row.BestLapTime?.Value ?? row.best_lap_time ?? d.best_lap_time,
+    //         last_lap_time: row.LastLapTime?.Value ?? row.last_lap_time ?? d.last_lap_time,
+    //         in_pit: Boolean(row.InPit ?? row.in_pit ?? d.in_pit),
+    //         retired: Boolean(row.Retired ?? row.retired ?? d.retired),
+    //         stopped: Boolean(row.Stopped ?? row.stopped ?? d.stopped),
+    //         show_position: row.ShowPosition ?? d.show_position,
+    //         status: row.Status ?? d.status,
+    //         line: row.Line ?? d.line,
+    //         interval_to_position_ahead: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval_to_position_ahead,
+    //       };
+    //     }).sort((a, b) => a.position - b.position);
+    //   });
+    // };
     const updateTimingData = (payload: any) => {
-      const raw = payload?.data ?? payload;
-      if (!raw) return;
-      const lines = Array.isArray(raw) ? raw : raw?.Lines ?? raw?.lines ?? raw?.Data ?? raw?.data ?? raw;
-      if (!lines) return;
-      const list: any[] = Array.isArray(lines) ? lines : Object.values(lines);
-      if (list.length === 0) return;
+  const raw = payload?.data ?? payload;
+  if (!raw) return;
 
-      const byId = new Map<string, any>();
-      for (const row of list) {
-        if (!row || typeof row !== "object") continue;
-        for (const id of rawDriverIds(row)) byId.set(id, row);
-      }
+  // Lines is an object keyed by RacingNumber: { "1": {...}, "3": {...} }
+  const lines = raw?.Lines ?? raw?.lines;
+  if (!lines || typeof lines !== "object") return;
 
-      setDrivers((prev) => {
-        if (prev.length === 0) {
-          const seeded = list.map((r) => buildDriverRow(r)).filter((d) => d.driver_number > 0).sort((a, b) => a.position - b.position);
-          if (seeded.length > 0) return seeded;
-          return prev;
-        }
-        return prev.map((d) => {
-          const id = String(d.driver_number);
-          const row = byId.get(id) ?? byId.get(id.padStart(2, "0"));
-          if (!row) return d;
-          return {
-            ...d,
-            position: Number(row.Position ?? row.position ?? row.Line ?? d.position) || d.position,
-            interval: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval,
-            gap_to_leader: row.GapToLeader ?? row.gap_to_leader ?? d.gap_to_leader,
-            best_lap_time: row.BestLapTime?.Value ?? row.best_lap_time ?? d.best_lap_time,
-            last_lap_time: row.LastLapTime?.Value ?? row.last_lap_time ?? d.last_lap_time,
-            in_pit: Boolean(row.InPit ?? row.in_pit ?? d.in_pit),
-            retired: Boolean(row.Retired ?? row.retired ?? d.retired),
-            stopped: Boolean(row.Stopped ?? row.stopped ?? d.stopped),
-            show_position: row.ShowPosition ?? d.show_position,
-            status: row.Status ?? d.status,
-            line: row.Line ?? d.line,
-            interval_to_position_ahead: row.IntervalToPositionAhead?.Value ?? row.interval ?? d.interval_to_position_ahead,
-          };
-        }).sort((a, b) => a.position - b.position);
-      });
-    };
+  const byRacingNumber = new Map<string, any>();
+  for (const [key, val] of Object.entries(lines)) {
+    const row: any = val;
+    // key IS the racing number
+    byRacingNumber.set(String(key), row);
+    byRacingNumber.set(String(key).padStart(2, "0"), row);
+    // also index by RacingNumber field if present
+    if (row?.RacingNumber) {
+      byRacingNumber.set(String(row.RacingNumber), row);
+    }
+  }
 
-    socket.on("livetiming:TimingData", updateTimingData);
-    socket.on("livetiming:TimingData.z", updateTimingData);
-    socket.on("TimingData", updateTimingData);
-    socket.on("TimingData.z", updateTimingData);
+  setDrivers((prev) => {
+    if (prev.length === 0) {
+      // Seed drivers from TimingData if DriverList hasn't come yet
+      const seeded = Object.entries(lines)
+        .map(([num, row]: [string, any]) => buildDriverRow({ ...row, driver_number: Number(num) }))
+        .filter((d) => d.driver_number > 0)
+        .sort((a, b) => a.position - b.position);
+      if (seeded.length > 0) return seeded;
+      return prev;
+    }
+
+    return prev.map((d) => {
+      const row = byRacingNumber.get(String(d.driver_number))
+                ?? byRacingNumber.get(String(d.driver_number).padStart(2, "0"));
+      if (!row) return d;
+      return {
+        ...d,
+        position: Number(row.Position ?? row.Line ?? d.position) || d.position,
+        interval: row.TimeDiffToPositionAhead ?? row.IntervalToPositionAhead?.Value ?? d.interval,
+        gap_to_leader: row.TimeDiffToFastest ?? row.GapToLeader ?? d.gap_to_leader,
+        best_lap_time: row.BestLapTime?.Value || d.best_lap_time,
+        last_lap_time: row.LastLapTime?.Value || d.last_lap_time,
+        in_pit: Boolean(row.InPit ?? d.in_pit),
+        retired: Boolean(row.Retired ?? d.retired),
+        stopped: Boolean(row.Stopped ?? d.stopped),
+      };
+    }).sort((a, b) => a.position - b.position);
+  });
+};
+
+    socket.on("livetiming:TimingData", ({ data }) => updateTimingData(data));
+    socket.on("livetiming:TimingData.z", ({ data }) => updateTimingData(data));
+    socket.on("TimingData", ({ data }) => updateTimingData(data));
+    socket.on("TimingData.z", ({ data }) => updateTimingData(data));
 
     socket.on("livetiming:WeatherData", ({ data }) => {
       const w = Array.isArray(data) ? data[0] : data;
@@ -718,6 +880,8 @@ export const Home = () => {
         })
       );
     });
+    
+
 
     return () => {
       socket.emit("leave:livetiming");
